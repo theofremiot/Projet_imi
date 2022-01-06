@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+from fonctions import calibrate_camera
 
 
 cap0 = cv.VideoCapture(1)
@@ -35,7 +36,7 @@ for i in range(0,6):
 
 for i in range(0,6):
     for j in range(0,8):
-        coord_mm2.append([(7-j)*pas,(6-i)*pas,150])
+        coord_mm2.append([(7-j)*pas,(6-i)*pas,0])
 
 
 
@@ -50,38 +51,34 @@ while True:
     cv.imshow('frame',dst)
     if cv.waitKey(1) == ord('a'):
         break
+cap0.release()
+cap1.release()
 
-for i in range (corners0.shape[0]):
-    coord_prev = []
-    coord_prev.append(corners0[i][0][0])
-    coord_prev.append(corners0[i][0][1])
-    coord_px.append(coord_prev)
-coord_prev=[]
-for i in range (corners1.shape[0]):
-    coord_prev = []
-    coord_prev.append(corners1[i][0][0])
-    coord_prev.append(corners1[i][0][1])
-    coord_px2.append(coord_prev)
+ret0, mtx0, dist0, rvecs0, tvecs0, objpoints0, imgpoints0= calibrate_camera(ret0,corners0,coord_mm,h,w)
+ret1, mtx1, dist1, rvecs1, tvecs1, objpoints1, imgpoints1= calibrate_camera(ret1,corners1,coord_mm2,h,w)
 
-
+print('ret = ', ret1)
+print('mtx = ', mtx1)
+print('dist = ', dist1)
+print('rvecs = ', rvecs1)
+print('tvecs = ', tvecs1)
+print('size tvecs = ', tvecs1[0].shape)
 
 
-objpoints = [] 
-imgpoints = []
-objpoints.append(coord_mm)
-objpoints.append(coord_mm2)
-imgpoints.append(coord_px)
-imgpoints.append(coord_px2)
+criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+stereocalibration_flags = cv.CALIB_FIX_INTRINSIC
+ret, CM1, dist1, CM2, dist2, R, T, E, F = cv.stereoCalibrate(np.float32(objpoints0), np.float32(imgpoints0), np.float32(imgpoints1), mtx0, dist0,
+mtx1, dist1, (w,h), criteria = criteria, flags = stereocalibration_flags)
 
-ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(np.float32(objpoints), np.float32(imgpoints), (h,w), None, None)
+print('rot=', R)
+print('T=', T)
 
-print('mtx',mtx)
 
 
     
 
 
 # When everything done, release the capture
-cap0.release()
+
 
 cv.destroyAllWindows()
