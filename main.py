@@ -13,6 +13,11 @@ if not cap1.isOpened():
 if not cap1.isOpened():
     print("Cannot open camera1")
     exit()
+count = 0
+
+
+trajectory = []
+
 while True:
     # Capture frame-by-frame
     ret1, frame1 = cap1.read()
@@ -24,22 +29,41 @@ while True:
     if not ret0:
         print("Can't receive frame 0 (stream end?). Exiting ...")
         break
-    # Our operations on the frame come here
-    frame0 = cv.cvtColor(frame0, cv.COLOR_BGR2GRAY)
-    frame1 = cv.cvtColor(frame1, cv.COLOR_BGR2GRAY)
-
-    ret0, corners0 = cv.findChessboardCorners(frame0, (7,6), None)
-    #ret1, corners1 = cv.findChessboardCorners(frame1, (7,6), None)
-    cv.drawChessboardCorners(frame0, (8,6), corners0, ret0)
-    #cv.drawChessboardCorners(frame1, (8,6), corners1, ret1)
 
 
-    #dst = cv.hconcat([frame0,frame1]) 
+    gray = cv.cvtColor(frame0, cv.COLOR_BGR2GRAY)
+
+    gray_blurred = cv.blur(gray, (3, 3)) 
+        
+    detected_circles = cv.HoughCircles(gray_blurred,  
+                        cv.HOUGH_GRADIENT, 1, 20, param1 = 50, 
+                    param2 = 30, minRadius = 32, maxRadius = 60)
+        
+    if detected_circles is not None: 
+        detected_circles = np.uint16(np.around(detected_circles)) 
+    
+        for pt in detected_circles[0, :]: 
+            a, b, r = pt[0], pt[1], pt[2] 
+    
+            
+            cv.circle(frame0, (a, b), r, (0, 255, 0), 2) 
+            print('a = ', a)
+            print('b = ', b)
+            print('r = ', r)
+            
+            cv.circle(frame0, (a, b), 1, (0, 0, 255), 3)
+            print('coord centre balle = ', b, a)
+            trajectory.append([b,a])
+            #cv.imshow("Detected Circle", frame0) 
+            if(np.shape(trajectory)!=[0,0]):
+                for pos in trajectory:
+                    frame0[pos[0],pos[1]]=[255,0,0]
+
+    
+    dst = cv.hconcat([frame0,frame1]) 
     # Display the resulting frame
-    cv.imshow('frame', frame0)
-    if cv.waitKey(1) == ord('q'):
+    
+    cv.imshow('frame', dst)
+
+    if cv.waitKey(1) == ord('a'):
         break
-# When everything done, release the capture
-cap0.release()
-cap1.release()
-cv.destroyAllWindows()
