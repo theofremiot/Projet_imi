@@ -25,6 +25,7 @@ def calibrate_double_camera(frame1, frame2):
     cv.waitKey(0)
 
     # utilisation de la fonction d'opencv pour calibrer
+    # TODO: solvePnP(), trouver les unités des paramètres intrinsèques
     h1, w1 = frame1.shape[0], frame1.shape[1]
     h2, w2 = frame2.shape[0], frame2.shape[1]
     ret1, mtx1, dist1, rvecs1, tvecs1 = cv.calibrateCamera([np.float32(coord_mm)],
@@ -37,7 +38,24 @@ def calibrate_double_camera(frame1, frame2):
                                                            (h2, w2),
                                                            None,
                                                            None)
+    # pour la correspondance aux matrices:
+    # https://learnopencv.com/camera-calibration-using-opencv/
 
+    # TODO: utiliser subpixel pour avoir plus de précisions
+    # https://learnopencv.com/camera-calibration-using-opencv/
 
+    # Obtenir les matrices essentielle et fondamentale
+    criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+    stereocalibration_flags = cv.CALIB_FIX_INTRINSIC
+    ret, CM1, dist0, CM2, dist1, R, T, E, F = cv.stereoCalibrate([np.float32(coord_mm)],
+                                                                 [np.float32(corners1)],
+                                                                 [np.float32(corners2)],
+                                                                 mtx1,
+                                                                 dist1,
+                                                                 mtx2,
+                                                                 dist2,
+                                                                 (w1, h1),
+                                                                 criteria=criteria,
+                                                                 flags=stereocalibration_flags)
 
     return None

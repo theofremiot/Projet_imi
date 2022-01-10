@@ -21,6 +21,7 @@ def ball_tracing(frame):
     # construct a mask for the color "green", then perform
     # a series of dilations and erosions to remove any small
     # blobs left in the mask
+    # TODO: faire l'intervale sur HSV
     mask = cv.inRange(hsv, greenLower, greenUpper)
     cnts = cv.findContours(mask.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
