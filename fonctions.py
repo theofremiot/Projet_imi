@@ -11,7 +11,11 @@ def calibrate_camera(ret, corners,coord_mm,h,w):
     coord_px = []
     objpoints=[]
     imgpoints=[]
-
+    mtx=np.zeros((3,3))
+    mtx[0][0]=4*1280/3.58
+    mtx[1][1]=4*960/2.02
+    mtx[0][2]=1280/2
+    mtx[1][2]=960/2
 
     for i in range (corners.shape[0]):
         coord_prev = []
@@ -20,8 +24,11 @@ def calibrate_camera(ret, corners,coord_mm,h,w):
         coord_px.append(coord_prev)
     objpoints.append(coord_mm)
     imgpoints.append(coord_px)
-    ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(np.float32(objpoints), np.float32(imgpoints), (h,w), None, None)
-    return(ret,mtx,dist,rvecs,tvecs,objpoints,imgpoints)
+    ret, mtx1, dist, rvecs, tvecs = cv.calibrateCamera(np.float32(objpoints), np.float32(imgpoints), (h,w), None, None)
+    ret,rvecs,tvecs=cv.solvePnP(np.float32(np.asarray(objpoints[0])),np.asarray(imgpoints[0]),mtx,dist,None,None,False,flags = cv.SOLVEPNP_ITERATIVE )
+    
+    return(ret,mtx,rvecs,tvecs,objpoints,imgpoints,dist)
+
 
 
 
