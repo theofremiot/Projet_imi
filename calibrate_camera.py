@@ -72,6 +72,16 @@ def calibrate_double_camera(frame1, frame2):
                                                                  criteria=criteria,
                                                                  flags=stereocalibration_flags)
 
+    # obtenir les matrices de projection pour faire la triangulation ##################################################
+
+    # RT matrix for C1 is identity.
+    RT1 = np.concatenate([np.eye(3), [[0], [0], [0]]], axis=-1)
+    P1 = M_int1 @ RT1  # projection matrix for C1
+
+    # RT matrix for C2 is the R and T obtained from stereo calibration.
+    RT2 = np.concatenate([R, T], axis=-1)
+    P2 = M_int2 @ RT2  # projection matrix for C2
+
     # calculer les points projeter dans le plan image de la caméra 1 ##################################################
 
     M_ext1 = np.concatenate((rvecs1, tvecs1), axis=1)
@@ -143,4 +153,23 @@ def calibrate_double_camera(frame1, frame2):
 
     ###################################################################################################################
 
-    return None
+    return P1, P2
+
+
+def DLT(P1, P2, point1, point2):
+    A = [point1[1] * P1[2, :] - P1[1, :],
+         P1[0, :] - point1[0] * P1[2, :],
+         point2[1] * P2[2, :] - P2[1, :],
+         P2[0, :] - point2[0] * P2[2, :]
+         ]
+    A = np.array(A).reshape((4, 4))
+    # print('A: ')
+    # print(A)
+
+    B = A.transpose() @ A
+    from scipy import linalg
+    U, s, Vh = linalg.svd(B, full_matrices=False)
+
+    print('Triangulated point: ')
+    print(Vh[3, 0:3] / Vh[3, 3])
+    return Vh[3, 0:3] / Vh[3, 3]
