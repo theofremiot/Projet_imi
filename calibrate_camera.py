@@ -122,9 +122,6 @@ def calibrate_double_camera(frame1, frame2):
     img_corners = cv.hconcat([img_corners1, img_corners2])
     plt.figure(1)
     plt.imshow(img_corners)
-    # cv.imshow("img", img_corners)
-    # cv.waitKey(0)
-    # cv.destroyAllWindows()
 
     # afficher les points dans le repère caméra #######################################################################
 
