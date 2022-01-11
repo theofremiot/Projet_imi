@@ -33,20 +33,19 @@ def calibrate_camera(ret, corners,coord_mm,h,w):
 
 
 def DLT(P1, P2, point1, point2):
- 
     A = [point1[1]*P1[2,:] - P1[1,:],
-         P1[0,:] - point1[0]*P1[2,:],
-         point2[1]*P2[2,:] - P2[1,:],
-         P2[0,:] - point2[0]*P2[2,:]
+        P1[0,:] - point1[0]*P1[2,:],
+        point2[1]*P2[2,:] - P2[1,:],
+        P2[0,:] - point2[0]*P2[2,:]
         ]
     A = np.array(A).reshape((4,4))
     #print('A: ')
     #print(A)
- 
+
     B = A.transpose() @ A
     from scipy import linalg
     U, s, Vh = linalg.svd(B, full_matrices = False)
- 
+
     print('Triangulated point: ')
     print(Vh[3,0:3]/Vh[3,3])
     return Vh[3,0:3]/Vh[3,3]
@@ -81,7 +80,8 @@ def ball_tracing(frame):
         
         ((x, y), radius) = cv.minEnclosingCircle(c)
         M = cv.moments(c)
-        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        if( M["m00"]!=0):
+            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 		# only proceed if the radius meets a minimum size
         if radius > 10:
 			# draw the circle and centroid on the frame,
@@ -238,4 +238,4 @@ def calibration_stereo(cap0,cap1,h,w):
     cv.waitKey(0)
 
     cv.destroyAllWindows()
-    return P0,P1
+    return M0,M1,P0,P1
