@@ -5,7 +5,8 @@ import imutils
 import argparse
 from collections import deque
 import matplotlib.pyplot as plt
-
+from scipy import linalg
+import csv 
 
 def calibrate_camera(ret, corners,coord_mm,h,w):
 
@@ -33,22 +34,59 @@ def calibrate_camera(ret, corners,coord_mm,h,w):
 
 
 def DLT(P1, P2, point1, point2):
+
+
     A = [point1[1]*P1[2,:] - P1[1,:],
         P1[0,:] - point1[0]*P1[2,:],
         point2[1]*P2[2,:] - P2[1,:],
         P2[0,:] - point2[0]*P2[2,:]
         ]
+
     A = np.array(A).reshape((4,4))
-    #print('A: ')
-    #print(A)
+    # print('A: ')
+    
 
     B = A.transpose() @ A
-    from scipy import linalg
+ 
     U, s, Vh = linalg.svd(B, full_matrices = False)
 
     print('Triangulated point: ')
     print(Vh[3,0:3]/Vh[3,3])
     return Vh[3,0:3]/Vh[3,3]
+
+
+
+def create_csv_file(vec):
+    vec_tot=[]
+    # string convertion
+    vec_str = []
+    for i in range(len(vec)):
+        vec_str_loc = []
+        coord_x = str(vec[i][0])
+        coord_y = str(vec[i][1])
+        coord_z = str(vec[i][2])
+        coord_t = str(vec[i][3])
+        vec_str_loc.append(coord_x)
+        vec_str_loc.append(coord_y)
+        vec_str_loc.append(coord_z)
+        vec_str_loc.append(coord_t)
+        vec_str.append(vec_str_loc)
+
+    entetes = [u'x',u'y',u'z',u't']
+
+    # créer un fichier csv
+    f = open('coords.csv', 'w')
+    ligneEntete = ";".join(entetes) + "\n"
+    f.write(ligneEntete)
+
+    for i in range(len(vec_str)):
+        print(vec_str[i])
+        ligne = ";".join(vec_str[i]) + "\n"
+        f.write(ligne)
+
+    f.close()
+
+    
 
 
 def ball_tracing(frame):
@@ -154,6 +192,7 @@ def calibration_stereo(cap0,cap1,h,w):
     for i in range(3):
         for j in range(3):
             Mtx0[i][j]=mtx0[i][j]
+    Mtx0[2][2]=1
     P0=np.dot(Mtx0,M0)
 
     ret1, mtx1, rvecs1, tvecs1, objpoints1, imgpoints1, dist1= calibrate_camera(ret1,corners1,coord_mm,h,w)
@@ -173,6 +212,7 @@ def calibration_stereo(cap0,cap1,h,w):
     for i in range(3):
         for j in range(3):
             Mtx1[i][j]=mtx1[i][j]
+    Mtx1[2][2]=1
     P1=np.dot(Mtx1,M1)
 
 
@@ -185,8 +225,8 @@ def calibration_stereo(cap0,cap1,h,w):
     [dst,jacobian] = cv.Rodrigues(np.float32(R))
     dst=dst*180/np.pi
 
-    print('rot=', dst)
-    print('T=', T)
+    # print('rot=', dst)
+    # print('T=', T)
 
 
 
