@@ -54,8 +54,6 @@ def DLT(P1, P2, point1, point2):
     print(Vh[3,0:3]/Vh[3,3])
     return Vh[3,0:3]/Vh[3,3]
 
-
-
 def create_csv_file(vec):
     vec_tot=[]
     # string convertion
@@ -80,14 +78,11 @@ def create_csv_file(vec):
     f.write(ligneEntete)
 
     for i in range(len(vec_str)):
-        print(vec_str[i])
+        #print(vec_str[i])
         ligne = ";".join(vec_str[i]) + "\n"
         f.write(ligne)
 
     f.close()
-
-    
-
 
 def ball_tracing(frame):
     ap = argparse.ArgumentParser()
@@ -142,6 +137,7 @@ def ball_tracing(frame):
     return frame,pts
 
 def calibration_stereo(cap0,cap1,h,w):
+
 
     coord_mm=[]
     pas=35
@@ -279,3 +275,23 @@ def calibration_stereo(cap0,cap1,h,w):
 
     cv.destroyAllWindows()
     return M0,M1,P0,P1
+
+
+def calcul_vitesse(vec,n):
+    vitesses=[]
+    for i in range(1,len(vec)):
+        if(i%n==0):
+            a=np.array((vec[i][0],vec[i][1],vec[i][2]))
+            b=np.array((vec[i-n+1][0],vec[i-n+1][1],vec[i-n+1][2]))
+            dist = np.linalg.norm(a-b)
+            #print(dist)
+            tps=vec[i][3]-vec[i-n+1][3]
+            #print(tps)
+            if(tps!=0):
+                vitesses.append(dist/tps)
+    return vitesses
+
+
+
+
+

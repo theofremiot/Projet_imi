@@ -1,8 +1,9 @@
+from asyncio import sleep
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
 from fonctions import calibrate_camera,calibration_stereo
-from fonctions import DLT,ball_tracing,create_csv_file
+from fonctions import DLT,ball_tracing,create_csv_file, calcul_vitesse
 from mpl_toolkits.mplot3d import Axes3D
 import time
 
@@ -63,16 +64,10 @@ while True:
         break
     
 
-
-
-
 positions_filtered = []
 for pos in positions:
     if(pos is not None):
         positions_filtered.append(pos)
-
-
-
 
 
 coord_cam_x = [coord[0] for coord in positions_filtered]
@@ -81,16 +76,20 @@ coord_cam_z = [coord[2] for coord in positions_filtered]
 
 plt.figure()
 ax = plt.axes(projection='3d')
-ax.scatter3D(coord_cam_x, coord_cam_y, coord_cam_z)
 ax.set_xlabel('z')
 ax.set_ylabel('x')
 ax.set_zlabel('y')
-
 
 M0_inv= np.linalg.pinv(M0) 
 M1_inv= np.linalg.pinv(M1) 
 ax.scatter3D(M0_inv[0][3],M0_inv[1][3],M0_inv[2][3])
 ax.scatter3D(M1_inv[0][3],M1_inv[1][3],M1_inv[2][3])
+
+for i in range(len(coord_cam_x)):
+    ax.scatter3D(coord_cam_x[i], coord_cam_y[i], coord_cam_z[i],c='blue')
+    plt.pause(0.2)
+
+
 plt.show()
 plt.figure()
 
@@ -103,8 +102,8 @@ for pos in positions:
         x.append(pos[0])
         y.append(pos[1])
 plt.plot(x,y)
-        
 plt.show()
 
-
+vit=calcul_vitesse(positions_filtered,5)
+print(vit) #mm/s
 create_csv_file(positions_filtered)
